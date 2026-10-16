@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChainRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">avengers-deployment-facade</a> &gt; <a href="index.source.html" class="el_package">com.starktech.workflow</a> &gt; <span class="el_source">ChainRepository.java</span></div><h1>ChainRepository.java</h1><pre class="source lang-java linenums">package com.starktech.workflow;
+
+import com.starktech.Storage;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+public class ChainRepository {
+    private static final String FOLDER = &quot;chains&quot;;
+
+    private final Storage storage;
+
+<span class="fc" id="L14">    public ChainRepository(Path dataFolder) {</span>
+<span class="fc" id="L15">        storage = new Storage(dataFolder);</span>
+<span class="fc" id="L16">    }</span>
+
+    public void save(ChainRecord chain) {
+<span class="fc" id="L19">        Properties data = new Properties();</span>
+
+<span class="fc" id="L21">        data.setProperty(&quot;id&quot;, chain.getId());</span>
+<span class="fc" id="L22">        data.setProperty(&quot;status&quot;, chain.getStatus().name());</span>
+<span class="fc" id="L23">        data.setProperty(&quot;detail&quot;, chain.getDetail());</span>
+
+<span class="fc" id="L25">        storage.save(FOLDER, chain.getId(), data);</span>
+<span class="fc" id="L26">    }</span>
+
+    public ChainRecord find(String id) {
+<span class="fc" id="L29">        Properties data = storage.load(FOLDER, id);</span>
+
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (data == null) {</span>
+<span class="fc" id="L32">            return null;</span>
+        }
+
+<span class="fc" id="L35">        return new ChainRecord(</span>
+<span class="fc" id="L36">            data.getProperty(&quot;id&quot;),</span>
+<span class="fc" id="L37">            ChainRecord.Status.valueOf(data.getProperty(&quot;status&quot;)),</span>
+<span class="fc" id="L38">            data.getProperty(&quot;detail&quot;)</span>
+        );
+    }
+
+    public List&lt;ChainRecord&gt; findAll() {
+<span class="fc" id="L43">        List&lt;ChainRecord&gt; chains = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        for (String id : storage.list(FOLDER)) {</span>
+<span class="fc" id="L46">            chains.add(find(id));</span>
+<span class="fc" id="L47">        }</span>
+
+<span class="fc" id="L49">        return chains;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

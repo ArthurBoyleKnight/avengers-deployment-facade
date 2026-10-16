@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClearanceRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">avengers-deployment-facade</a> &gt; <a href="index.source.html" class="el_package">com.starktech.clearance</a> &gt; <span class="el_source">ClearanceRepository.java</span></div><h1>ClearanceRepository.java</h1><pre class="source lang-java linenums">package com.starktech.clearance;
+
+import com.starktech.Storage;
+import java.nio.file.Path;
+import java.util.Properties;
+
+public class ClearanceRepository {
+    private final Storage storage;
+
+<span class="fc" id="L10">    public ClearanceRepository(Path dataFolder) {</span>
+<span class="fc" id="L11">        storage = new Storage(dataFolder);</span>
+<span class="fc" id="L12">    }</span>
+
+    public void save(MissionClearance clearance) {
+<span class="fc" id="L15">        Properties data = new Properties();</span>
+<span class="fc" id="L16">        data.setProperty(&quot;id&quot;, clearance.getId());</span>
+<span class="fc" id="L17">        data.setProperty(&quot;missionCode&quot;, clearance.getMissionCode());</span>
+<span class="fc" id="L18">        data.setProperty(&quot;status&quot;, clearance.getStatus().name());</span>
+
+<span class="fc" id="L20">        storage.save(&quot;clearances&quot;, clearance.getId(), data);</span>
+<span class="fc" id="L21">    }</span>
+
+    public MissionClearance find(String id) {
+<span class="fc" id="L24">        Properties data = storage.load(&quot;clearances&quot;, id);</span>
+
+<span class="fc bfc" id="L26" title="All 2 branches covered.">        if (data == null) {</span>
+<span class="fc" id="L27">            return null;</span>
+        }
+
+<span class="fc" id="L30">        return new MissionClearance(</span>
+<span class="fc" id="L31">            data.getProperty(&quot;id&quot;),</span>
+<span class="fc" id="L32">            data.getProperty(&quot;missionCode&quot;),</span>
+<span class="fc" id="L33">            MissionClearance.Status.valueOf(data.getProperty(&quot;status&quot;))</span>
+        );
+    }
+
+    public void delete(String id) {
+<span class="fc" id="L38">        storage.delete(&quot;clearances&quot;, id);</span>
+<span class="fc" id="L39">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

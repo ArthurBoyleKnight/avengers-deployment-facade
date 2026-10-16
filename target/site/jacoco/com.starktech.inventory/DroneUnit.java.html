@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DroneUnit.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">avengers-deployment-facade</a> &gt; <a href="index.source.html" class="el_package">com.starktech.inventory</a> &gt; <span class="el_source">DroneUnit.java</span></div><h1>DroneUnit.java</h1><pre class="source lang-java linenums">package com.starktech.inventory;
+
+public class DroneUnit {
+<span class="fc" id="L4">    public enum Status {</span>
+<span class="fc" id="L5">        NEW, RESERVED, RELEASED</span>
+    }
+
+    private final String id;
+    private final String droneId;
+    private Status status;
+
+<span class="fc" id="L12">    public DroneUnit(String id, String droneId, Status status) {</span>
+<span class="fc" id="L13">        this.id = id;</span>
+<span class="fc" id="L14">        this.droneId = droneId;</span>
+<span class="fc" id="L15">        this.status = status;</span>
+<span class="fc" id="L16">    }</span>
+
+    public String getId() {
+<span class="fc" id="L19">        return id;</span>
+    }
+
+    public String getDroneId() {
+<span class="fc" id="L23">        return droneId;</span>
+    }
+
+    public Status getStatus() {
+<span class="fc" id="L27">        return status;</span>
+    }
+
+    public void transitionTo(Status next) {
+<span class="pc bpc" id="L31" title="1 of 8 branches missed.">        boolean legal =</span>
+            (status == Status.NEW &amp;&amp; next == Status.RESERVED)
+            || (status == Status.RESERVED &amp;&amp; next == Status.RELEASED);
+
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (!legal) {</span>
+<span class="fc" id="L36">            throw new IllegalStateException(</span>
+                &quot;Drone unit cannot move from &quot; + status + &quot; to &quot; + next + &quot;.&quot;
+            );
+        }
+
+<span class="fc" id="L41">        status = next;</span>
+<span class="fc" id="L42">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

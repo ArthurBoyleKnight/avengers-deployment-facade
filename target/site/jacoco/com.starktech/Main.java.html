@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Main.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">avengers-deployment-facade</a> &gt; <a href="index.source.html" class="el_package">com.starktech</a> &gt; <span class="el_source">Main.java</span></div><h1>Main.java</h1><pre class="source lang-java linenums">package com.starktech;
+
+import com.starktech.facade.AdminFacade;
+import com.starktech.facade.DeploymentFacade;
+import com.starktech.facade.DeploymentFailedException;
+import com.starktech.facade.DeploymentReport;
+import com.starktech.workflow.ChainRecord;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Scanner;
+
+<span class="nc" id="L13">public class Main {</span>
+
+    public static void main(String[] args) {
+<span class="nc" id="L16">        Scanner scanner = new Scanner(System.in);</span>
+
+<span class="nc" id="L18">        DeploymentFacade deployment =</span>
+<span class="nc" id="L19">            new DeploymentFacade(Path.of(&quot;data&quot;));</span>
+
+<span class="nc" id="L21">        AdminFacade admin = new AdminFacade(deployment);</span>
+
+        while (true) {
+<span class="nc" id="L24">            System.out.println(&quot;\n=== STARK TECH MISSION SYSTEM ===&quot;);</span>
+<span class="nc" id="L25">            System.out.println(&quot;1. Deploy&quot;);</span>
+<span class="nc" id="L26">            System.out.println(&quot;2. Deploy with forced failure at diagnostics (B)&quot;);</span>
+<span class="nc" id="L27">            System.out.println(&quot;3. Deploy with forced failure at clearance (C)&quot;);</span>
+<span class="nc" id="L28">            System.out.println(&quot;4. Inspect deployment&quot;);</span>
+<span class="nc" id="L29">            System.out.println(&quot;5. Compensate completed deployment&quot;);</span>
+<span class="nc" id="L30">            System.out.println(&quot;6. List all deployments&quot;);</span>
+<span class="nc" id="L31">            System.out.println(&quot;7. Recover interrupted deployments&quot;);</span>
+<span class="nc" id="L32">            System.out.println(&quot;8. Exit&quot;);</span>
+<span class="nc" id="L33">            System.out.print(&quot;Choose: &quot;);</span>
+
+<span class="nc" id="L35">            String choice = scanner.nextLine().trim();</span>
+
+            try {
+<span class="nc bnc" id="L38" title="All 7 branches missed.">                switch (choice) {</span>
+                    case &quot;1&quot;, &quot;2&quot;, &quot;3&quot; -&gt; {
+<span class="nc" id="L40">                        System.out.print(&quot;Drone ID (e.g. DRONE-01, DRONE-01-LOWBAT): &quot;);</span>
+<span class="nc" id="L41">                        String droneId = scanner.nextLine().trim();</span>
+
+<span class="nc" id="L43">                        System.out.print(&quot;Mission code (e.g. M-AVENGER7, M-AVENGER7-DENIED): &quot;);</span>
+<span class="nc" id="L44">                        String missionCode = scanner.nextLine().trim();</span>
+
+<span class="nc" id="L46">                        String id = deployment.deploy(</span>
+                            droneId,
+                            missionCode,
+<span class="nc" id="L49">                            choice.equals(&quot;2&quot;),</span>
+<span class="nc" id="L50">                            choice.equals(&quot;3&quot;)</span>
+                        );
+
+<span class="nc" id="L53">                        System.out.println(</span>
+                            &quot;Deployment completed. Chain ID: &quot; + id
+                        );
+<span class="nc" id="L56">                    }</span>
+
+                    case &quot;4&quot; -&gt; {
+<span class="nc" id="L59">                        System.out.print(&quot;Chain ID: &quot;);</span>
+<span class="nc" id="L60">                        String id = scanner.nextLine().trim();</span>
+
+<span class="nc" id="L62">                        DeploymentReport report = admin.report(id);</span>
+
+<span class="nc" id="L64">                        System.out.println(&quot;ID: &quot; + report.id());</span>
+<span class="nc" id="L65">                        System.out.println(&quot;Chain status: &quot; + report.chain());</span>
+<span class="nc" id="L66">                        System.out.println(&quot;Inventory (A): &quot; + report.inventory());</span>
+<span class="nc" id="L67">                        System.out.println(&quot;Diagnostics (B): &quot; + report.diagnostics());</span>
+<span class="nc" id="L68">                        System.out.println(&quot;Clearance (C): &quot; + report.clearance());</span>
+<span class="nc" id="L69">                        System.out.println(&quot;Details: &quot; + report.detail());</span>
+<span class="nc" id="L70">                    }</span>
+
+                    case &quot;5&quot; -&gt; {
+<span class="nc" id="L73">                        System.out.print(&quot;Chain ID: &quot;);</span>
+<span class="nc" id="L74">                        String id = scanner.nextLine().trim();</span>
+
+<span class="nc" id="L76">                        admin.compensate(id);</span>
+<span class="nc" id="L77">                        System.out.println(&quot;Compensation completed.&quot;);</span>
+<span class="nc" id="L78">                    }</span>
+
+                    case &quot;6&quot; -&gt; {
+<span class="nc" id="L81">                        List&lt;ChainRecord&gt; chains = admin.list();</span>
+
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                        if (chains.isEmpty()) {</span>
+<span class="nc" id="L84">                            System.out.println(&quot;No deployments stored.&quot;);</span>
+                        }
+
+<span class="nc bnc" id="L87" title="All 2 branches missed.">                        for (ChainRecord chain : chains) {</span>
+<span class="nc" id="L88">                            System.out.println(</span>
+<span class="nc" id="L89">                                chain.getId() + &quot;  &quot; + chain.getStatus()</span>
+<span class="nc" id="L90">                                + &quot;  &quot; + chain.getDetail()</span>
+                            );
+<span class="nc" id="L92">                        }</span>
+<span class="nc" id="L93">                    }</span>
+
+                    case &quot;7&quot; -&gt; {
+<span class="nc" id="L96">                        int recovered = admin.recoverInterrupted();</span>
+<span class="nc" id="L97">                        System.out.println(</span>
+                            &quot;Recovered interrupted deployments: &quot; + recovered
+                        );
+<span class="nc" id="L100">                    }</span>
+
+                    case &quot;8&quot; -&gt; {
+<span class="nc" id="L103">                        System.out.println(&quot;Goodbye!&quot;);</span>
+<span class="nc" id="L104">                        scanner.close();</span>
+<span class="nc" id="L105">                        return;</span>
+                    }
+
+                    default -&gt;
+<span class="nc" id="L109">                        System.out.println(&quot;Invalid choice.&quot;);</span>
+                }
+<span class="nc" id="L111">            } catch (DeploymentFailedException e) {</span>
+<span class="nc" id="L112">                System.out.println(e.getMessage());</span>
+<span class="nc" id="L113">            } catch (RuntimeException e) {</span>
+<span class="nc" id="L114">                System.out.println(&quot;Error: &quot; + e.getMessage());</span>
+<span class="nc" id="L115">            }</span>
+<span class="nc" id="L116">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

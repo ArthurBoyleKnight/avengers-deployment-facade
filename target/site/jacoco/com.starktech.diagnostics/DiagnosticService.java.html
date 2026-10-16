@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DiagnosticService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">avengers-deployment-facade</a> &gt; <a href="index.source.html" class="el_package">com.starktech.diagnostics</a> &gt; <span class="el_source">DiagnosticService.java</span></div><h1>DiagnosticService.java</h1><pre class="source lang-java linenums">package com.starktech.diagnostics;
+
+<span class="fc" id="L3">public class DiagnosticService {</span>
+
+    public void process(
+        String id,
+        String droneId,
+        boolean fail,
+        DiagnosticRepository repository
+    ) {
+<span class="fc bfc" id="L11" title="All 2 branches covered.">        if (fail) {</span>
+<span class="fc" id="L12">            throw new DiagnosticsFailedException(&quot;Drone diagnostics failed.&quot;);</span>
+        }
+
+<span class="fc bfc" id="L15" title="All 2 branches covered.">        if (droneId.endsWith(&quot;-LOWBAT&quot;)) {</span>
+<span class="fc" id="L16">            throw new DiagnosticsFailedException(</span>
+                &quot;Drone diagnostics failed: battery too low.&quot;
+            );
+        }
+
+<span class="fc" id="L21">        DiagnosticReport report = new DiagnosticReport(</span>
+            id,
+            droneId,
+            DiagnosticReport.Status.NEW
+        );
+<span class="fc" id="L26">        report.transitionTo(DiagnosticReport.Status.PASSED);</span>
+
+<span class="fc" id="L28">        repository.save(report);</span>
+<span class="fc" id="L29">    }</span>
+
+    public void reverse(String id, DiagnosticRepository repository) {
+<span class="fc" id="L32">        DiagnosticReport report = repository.find(id);</span>
+
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (report != null) {</span>
+<span class="fc" id="L35">            report.transitionTo(DiagnosticReport.Status.REVERSED);</span>
+<span class="fc" id="L36">            repository.save(report);</span>
+        }
+<span class="fc" id="L38">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

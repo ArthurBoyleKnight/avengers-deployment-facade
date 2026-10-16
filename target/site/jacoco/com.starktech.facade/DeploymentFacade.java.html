@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeploymentFacade.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">avengers-deployment-facade</a> &gt; <a href="index.source.html" class="el_package">com.starktech.facade</a> &gt; <span class="el_source">DeploymentFacade.java</span></div><h1>DeploymentFacade.java</h1><pre class="source lang-java linenums">package com.starktech.facade;
+
+import com.starktech.inventory.*;
+import com.starktech.diagnostics.*;
+import com.starktech.clearance.*;
+import com.starktech.workflow.*;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.UUID;
+
+public class DeploymentFacade {
+    private final InventoryRepository inventoryRepo;
+    private final DiagnosticRepository diagnosticRepo;
+    private final ClearanceRepository clearanceRepo;
+    private final ChainRepository chainRepo;
+
+<span class="fc" id="L18">    private final InventoryService inventory = new InventoryService();</span>
+<span class="fc" id="L19">    private final DiagnosticService diagnostics = new DiagnosticService();</span>
+<span class="fc" id="L20">    private final ClearanceService clearance = new ClearanceService();</span>
+
+<span class="fc" id="L22">    public DeploymentFacade(Path dataFolder) {</span>
+<span class="fc" id="L23">        inventoryRepo = new InventoryRepository(dataFolder);</span>
+<span class="fc" id="L24">        diagnosticRepo = new DiagnosticRepository(dataFolder);</span>
+<span class="fc" id="L25">        clearanceRepo = new ClearanceRepository(dataFolder);</span>
+<span class="fc" id="L26">        chainRepo = new ChainRepository(dataFolder);</span>
+<span class="fc" id="L27">    }</span>
+
+    public String deploy(
+        String droneId,
+        String missionCode,
+        boolean failB,
+        boolean failC
+    ) {
+<span class="fc" id="L35">        inventory.validateDroneId(droneId);</span>
+<span class="fc" id="L36">        clearance.validateMissionCode(missionCode);</span>
+
+<span class="fc" id="L38">        String id = UUID.randomUUID().toString().substring(0, 8);</span>
+
+<span class="fc" id="L40">        ChainRecord chain = new ChainRecord(</span>
+            id,
+            ChainRecord.Status.STARTED,
+            &quot;Drone=&quot; + droneId + &quot;, mission=&quot; + missionCode
+        );
+
+<span class="fc" id="L46">        chainRepo.save(chain);</span>
+
+        try {
+<span class="fc" id="L49">            inventory.reserve(id, droneId, inventoryRepo);</span>
+<span class="fc" id="L50">            advance(chain, ChainRecord.Status.PENDING_B);</span>
+
+<span class="fc" id="L52">            diagnostics.process(id, droneId, failB, diagnosticRepo);</span>
+<span class="fc" id="L53">            advance(chain, ChainRecord.Status.PENDING_C);</span>
+
+<span class="fc" id="L55">            clearance.approve(id, missionCode, failC, clearanceRepo);</span>
+<span class="fc" id="L56">            advance(chain, ChainRecord.Status.COMPLETED);</span>
+
+<span class="fc" id="L58">            return id;</span>
+<span class="fc" id="L59">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L60">            rollBack(id);</span>
+<span class="fc" id="L61">            throw new DeploymentFailedException(id, e.getMessage(), e);</span>
+        }
+    }
+
+    private void advance(ChainRecord chain, ChainRecord.Status next) {
+<span class="fc" id="L66">        chain.setStatus(next);</span>
+<span class="fc" id="L67">        chainRepo.save(chain);</span>
+<span class="fc" id="L68">    }</span>
+
+    private void rollBack(String id) {
+<span class="fc" id="L71">        ChainRecord chain = chainRepo.find(id);</span>
+
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (chain == null) {</span>
+<span class="nc" id="L74">            throw new DeploymentNotFoundException(id);</span>
+        }
+
+<span class="fc" id="L77">        ChainRecord.Status reached = chain.getStatus();</span>
+
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (reached == ChainRecord.Status.COMPLETED) {</span>
+<span class="fc" id="L80">            clearance.revoke(id, clearanceRepo);</span>
+        }
+
+<span class="fc bfc" id="L83" title="All 4 branches covered.">        if (reached == ChainRecord.Status.COMPLETED</span>
+            || reached == ChainRecord.Status.PENDING_C) {
+<span class="fc" id="L85">            diagnostics.reverse(id, diagnosticRepo);</span>
+        }
+
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (reached != ChainRecord.Status.STARTED) {</span>
+<span class="fc" id="L89">            inventory.release(id, inventoryRepo);</span>
+        }
+
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (reached == ChainRecord.Status.STARTED) {</span>
+<span class="fc" id="L93">            chain.setStatus(ChainRecord.Status.REJECTED);</span>
+<span class="fc" id="L94">            chain.setDetail(chain.getDetail() + &quot;; nothing to undo&quot;);</span>
+        } else {
+<span class="fc" id="L96">            chain.setStatus(ChainRecord.Status.COMPENSATED);</span>
+<span class="fc" id="L97">            chain.setDetail(</span>
+<span class="fc" id="L98">                chain.getDetail() + &quot;; compensation completed from &quot; + reached</span>
+            );
+        }
+
+<span class="fc" id="L102">        chainRepo.save(chain);</span>
+<span class="fc" id="L103">    }</span>
+
+    public ChainRecord inspect(String id) {
+<span class="fc" id="L106">        return chainRepo.find(id);</span>
+    }
+
+    public DeploymentReport report(String id) {
+<span class="fc" id="L110">        ChainRecord chain = chainRepo.find(id);</span>
+
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (chain == null) {</span>
+<span class="fc" id="L113">            throw new DeploymentNotFoundException(id);</span>
+        }
+
+<span class="fc" id="L116">        DroneUnit drone = inventoryRepo.find(id);</span>
+<span class="fc" id="L117">        DiagnosticReport diagnostic = diagnosticRepo.find(id);</span>
+<span class="fc" id="L118">        MissionClearance approval = clearanceRepo.find(id);</span>
+
+<span class="fc" id="L120">        return new DeploymentReport(</span>
+            id,
+<span class="fc" id="L122">            chain.getStatus().name(),</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">            drone == null ? &quot;NONE&quot; : drone.getStatus().name(),</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">            diagnostic == null ? &quot;NONE&quot; : diagnostic.getStatus().name(),</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">            approval == null ? &quot;NONE&quot; : approval.getStatus().name(),</span>
+<span class="fc" id="L126">            chain.getDetail()</span>
+        );
+    }
+
+    public List&lt;ChainRecord&gt; list() {
+<span class="fc" id="L131">        return chainRepo.findAll();</span>
+    }
+
+    public void compensate(String id) {
+<span class="fc" id="L135">        ChainRecord chain = chainRepo.find(id);</span>
+
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (chain == null) {</span>
+<span class="fc" id="L138">            throw new DeploymentNotFoundException(id);</span>
+        }
+
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (chain.getStatus() != ChainRecord.Status.COMPLETED) {</span>
+<span class="fc" id="L142">            throw new IllegalStateException(</span>
+                &quot;Only completed deployments can be compensated manually.&quot;
+            );
+        }
+
+<span class="fc" id="L147">        rollBack(id);</span>
+<span class="fc" id="L148">    }</span>
+
+    public int recoverInterrupted() {
+<span class="fc" id="L151">        int recovered = 0;</span>
+
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        for (ChainRecord chain : chainRepo.findAll()) {</span>
+<span class="fc" id="L154">            ChainRecord.Status status = chain.getStatus();</span>
+
+<span class="pc bpc" id="L156" title="1 of 6 branches missed.">            if (status == ChainRecord.Status.STARTED</span>
+                || status == ChainRecord.Status.PENDING_B
+                || status == ChainRecord.Status.PENDING_C) {
+<span class="fc" id="L159">                rollBack(chain.getId());</span>
+<span class="fc" id="L160">                recovered++;</span>
+            }
+<span class="fc" id="L162">        }</span>
+
+<span class="fc" id="L164">        return recovered;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

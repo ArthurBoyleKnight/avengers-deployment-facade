@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminFacade.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">avengers-deployment-facade</a> &gt; <a href="index.source.html" class="el_package">com.starktech.facade</a> &gt; <span class="el_source">AdminFacade.java</span></div><h1>AdminFacade.java</h1><pre class="source lang-java linenums">package com.starktech.facade;
+
+import com.starktech.workflow.ChainRecord;
+
+import java.util.List;
+
+public class AdminFacade {
+    private final DeploymentFacade deployment;
+
+<span class="fc" id="L10">    public AdminFacade(DeploymentFacade deployment) {</span>
+<span class="fc" id="L11">        this.deployment = deployment;</span>
+<span class="fc" id="L12">    }</span>
+
+    public ChainRecord inspect(String id) {
+<span class="fc" id="L15">        return deployment.inspect(id);</span>
+    }
+
+    public DeploymentReport report(String id) {
+<span class="fc" id="L19">        return deployment.report(id);</span>
+    }
+
+    public List&lt;ChainRecord&gt; list() {
+<span class="fc" id="L23">        return deployment.list();</span>
+    }
+
+    public void compensate(String id) {
+<span class="fc" id="L27">        deployment.compensate(id);</span>
+<span class="fc" id="L28">    }</span>
+
+    public int recoverInterrupted() {
+<span class="nc" id="L31">        return deployment.recoverInterrupted();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
